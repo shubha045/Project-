@@ -1,0 +1,216 @@
+{
+  "name": "Job scraper",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1152,
+        -32
+      ],
+      "id": "876fea6d-b4f3-4012-bc1a-dd5eea3ed930",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/BHzefUZlZRKWxkTck/run-sync-get-dataset-items",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer apify_api_Pm8PQqAANAqVEn67cONhtUcOFr39iq2Cow5H"
+            },
+            {
+              "name": "Authentication"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"experienceLevel\": \"2\",\n    \"location\": \"India \",\n    \"proxy\": {\n        \"useApifyProxy\": true,\n        \"apifyProxyGroups\": [\n            \"RESIDENTIAL\"\n        ]\n    },\n    \"rows\": 10,\n    \"title\": \"Software Engineer \"\n}",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -880,
+        -32
+      ],
+      "id": "3255744b-ccfb-41f9-abf2-932b20736ad6",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=I want you to make a summery of these jobs. Format Should be 1. Role:  {{ $json.title }} 2. Company: {{ $json.companyName }} 3. Location: {{ $json.location }} 4. Vacancy: {{ $json.applicationsCount }} 5. Type:  {{ $json.contractType }} 6. Experience: {{ $json.experienceLevel }}  7. Apply at: {{ $json.applyUrl }} 8. Job URL: {{ $json.jobUrl }}\n\nGive all these information in tabular form. ",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        -656,
+        -32
+      ],
+      "id": "d31a0a9e-18a3-46b8-895a-191d5672c22b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -656,
+        112
+      ],
+      "id": "263ce1cf-9211-4980-bf4b-6f4b8b5ba39d",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "130hBBZZxPI68sW8",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {
+          "format": false
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -304,
+        -32
+      ],
+      "id": "86e6003a-51ac-4020-bd8e-4a9a233122ba",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "sendTo": "shubhajeetkarmakar@gmail.com",
+        "subject": "Job UPDATE !!!!!",
+        "message": "Here Is your Job Update",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -96,
+        -32
+      ],
+      "id": "69e2fff5-e8a8-4db4-a546-99f9be5cdab9",
+      "name": "Send a message",
+      "webhookId": "29099005-e084-4f8f-8879-1f46dfbe5bbf",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Oc1IRvKqrR6sJWGb",
+          "name": "Gmail account 6"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e3b4af3a-8dd9-49c6-b6aa-f2a24fde8939",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "34c4f9d0f8aa829e21b35265cd07b19540b17de52b7d409d2cf2ba631e7e9af3"
+  },
+  "id": "yGiQxlOwnagpWfzL",
+  "tags": []
+}
